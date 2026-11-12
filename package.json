@@ -2,11 +2,14 @@
   "name": "erp-ecf",
   "version": "0.1.0",
   "private": true,
+  "main": "main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron": "electron .",
+    "desktop": "next build && next start & electron ."
   },
   "dependencies": {
     "next": "16.4.6",
@@ -16,11 +19,8 @@
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.4.6",
-    "tailwindcss": "4.3.3",
-    "typescript": "^5"
+    "@types/react": "19.3.1",
+    "electron": "^45.3.1",
+    "typescript": "7.0.2"
   }
 }
