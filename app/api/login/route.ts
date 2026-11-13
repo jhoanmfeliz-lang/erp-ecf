@@ -40,31 +40,23 @@ export async function POST(request: Request) {
       },
     })
 
-    // Limpiar el usuario y asegurar el dominio correcto en minúsculas
     const cleanUsername = username.toLowerCase()
     const email = cleanUsername.includes('@') ? cleanUsername : `${cleanUsername}@dss.com`
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
-      // AQUÍ ESTÁ EL DIAGNÓSTICO: Nos devolverá el error exacto y el correo que intentó usar
-      return NextResponse.json({ 
-        errorSupabase: error.message, 
-        emailIntentado: email,
-        codigoError: error.status 
-      }, { status: 400 })
+      return NextResponse.redirect(new URL('/login?error=Credenciales+incorrectas', request.url), 303)
     }
 
-    // Crear la respuesta de redirección a la página principal si entra con éxito
     const url = new URL('/', request.url)
     const response = NextResponse.redirect(url, {
       status: 303,
     })
 
-    // Copiar explícitamente las cookies de sesión generadas por Supabase a la respuesta final
     cookieStore.getAll().forEach((cookie) => {
       response.cookies.set(cookie.name, cookie.value)
     })
