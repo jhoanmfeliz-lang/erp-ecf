@@ -1,41 +1,14 @@
-'use client'
-
-import { useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-
-export default function Home() {
-  const supabase = createClientComponentClient()
-
-  useEffect(() => {
-    // Si viene con el parámetro de la app de escritorio, matamos la sesión en Supabase al instante
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('force_login') === 'true') {
-      supabase.auth.signOut().then(() => {
-        // Limpiamos el parámetro de la URL para dejar la barra limpia y recargamos limpio
-        window.location.href = '/'
-      })
-    }
-  }, [supabase])
-
-  return (
-    <main style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>Iniciando sistema de seguridad...</h1>
-    </main>
-  )
-}import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 
-// Forzamos a que esta página sea dinámica siempre (sin caché de Vercel)
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-  // Verificamos si hay una sesión activa real en el servidor de Supabase
   const { data: { session } } = await supabase.auth.getSession()
 
-  // SI NO HAY SESIÓN: Mostramos directamente la pantalla de Login o bloqueamos el acceso
   if (!session) {
     return (
       <main style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', fontFamily: 'sans-serif', background: '#f4f6f9' }}>
@@ -43,7 +16,6 @@ export default async function Home() {
           <h2 style={{ marginBottom: '20px', color: '#333' }}>Acceso Restringido - ERP</h2>
           <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>Debe iniciar sesión para ingresar al sistema de escritorio.</p>
           
-          {/* Aquí puedes colocar tu formulario de login de Supabase o un botón que lleve al login */}
           <form action="/auth/login" method="POST">
             <input 
               type="email" 
@@ -71,12 +43,10 @@ export default async function Home() {
     )
   }
 
-  // SI SÍ HAY SESIÓN: Mostramos su panel normal del ERP que ya tenía hecho
   return (
     <main style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>Bienvenido al Panel del ERP</h1>
       <p>Sesión activa correctamente.</p>
-      {/* Aquí va el contenido normal de su panel */}
     </main>
   )
 }
