@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
@@ -10,8 +9,9 @@ export async function POST(request: Request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+    // Esto nos dirá exactamente si falta alguna variable o qué contiene
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json({ error: 'Faltan las variables de entorno de Supabase' }, { status: 500 })
+      return new NextResponse(`ERROR DE CONFIGURACIÓN: URL=${supabaseUrl}, KEY=${supabaseAnonKey}`, { status: 500 })
     }
 
     const email = username.includes('@') ? username : `${username}@dss.com`
@@ -27,33 +27,13 @@ export async function POST(request: Request) {
 
     const data = await res.json()
 
-    if (!res.ok || !data.access_token) {
-      return NextResponse.redirect(new URL('/?error=invalid_credentials', request.url), { status: 303 })
+    // Si Supabase rechaza las credenciales o da error, veremos el motivo exacto aquí
+    if (!res.ok) {
+      return new NextResponse(`ERROR DE SUPABASE (${res.status}): ${JSON.stringify(data)}`, { status: 500 })
     }
 
-    const cookieStore = await cookies()
-    const response = NextResponse.redirect(new URL('/', request.url), { status: 303 })
-
-    const hostname = new URL(supabaseUrl).hostname
-    const cookieName = `sb-${hostname.split('.')[0]}-auth-token`
-
-    response.cookies.set({
-      name: cookieName,
-      value: JSON.stringify({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        user: data.user,
-      }),
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 604800,
-    })
-
-    return response
+    return NextResponse.json({ success: true, data })
   } catch (err: any) {
-    console.error('ERROR DETALLADO EN LOGIN:', err)
-    return NextResponse.json({ error: err.message || 'Error interno en el servidor' }, { status: 500 })
+    return new NextResponse(`EXCEPCIÓN EN EL CÓDIGO: ${err.message}`, { status: 500 })
   }
 }
