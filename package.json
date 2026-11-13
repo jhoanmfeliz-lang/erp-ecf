@@ -12,6 +12,7 @@
     "desktop": "next build && next start & electron ."
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
     "@types/react-dom": "^19.3.0",
     "next": "16.4.6",
     "react": "19.3.0",
