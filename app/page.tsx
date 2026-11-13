@@ -1,11 +1,8 @@
 import { cookies } from 'next/headers'
 
-export const dynamic = 'force-dynamic'
-
 export default async function Home() {
   const cookieStore = cookies()
   
-  // Supabase almacena las credenciales de sesión en cookies que comienzan con "sb-"
   const allCookies = cookieStore.getAll()
   const hasSession = allCookies.some(cookie => cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token'))
 
