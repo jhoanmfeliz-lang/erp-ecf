@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default async function HomePage() {
+async function DashboardContent() {
   const cookieStore = await cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -105,5 +106,13 @@ export default async function HomePage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', fontFamily: 'Arial' }}>Cargando sistema...</div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }
