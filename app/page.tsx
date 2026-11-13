@@ -51,7 +51,7 @@ export default async function HomePage() {
         background: '#f8fafc',
         fontFamily: 'Arial, sans-serif',
         padding: '40px',
-        boxSizing: 'box-sizing',
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -91,4 +91,21 @@ export default async function HomePage() {
               padding: '10px 18px',
               borderRadius: '6px',
               textDecoration: 'none',
-              fontSize: '14
+              fontSize: '14px',
+              fontWeight: 'bold',
+            }}
+          >
+            Cerrar Sesión
+          </a>
+        </div>
+
+        <div>
+          <h3 style={{ color: '#334155', marginTop: 0 }}>¡Bienvenido al sistema!</h3>
+          <p style={{ color: '#64748b', fontSize: '15px', lineHeight: '1.5' }}>
+            Sesión iniciada correctamente para: <strong>{user.email}</strong>
+          </p>
+        </div>
+      </div>
+    </main>
+  )
+}
