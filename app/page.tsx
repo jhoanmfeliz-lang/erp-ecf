@@ -5,18 +5,21 @@ export default function Home() {
   return (
     <Suspense
       fallback={
-        <main
+        <div
           style={{
-            minHeight: '100vh',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            background: '#0f172a',
+            color: '#fff',
             fontFamily: 'sans-serif',
-            background: '#f4f6f9',
           }}
         >
           Cargando sistema...
-        </main>
+        </div>
       }
     >
       <HomeContent />
@@ -36,79 +39,109 @@ async function HomeContent() {
 
   if (!hasSession) {
     return (
-      <main
+      <div
         style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 99999,
+          background: '#0f172a',
           display: 'flex',
-          minHeight: '100vh',
           justifyContent: 'center',
           alignItems: 'center',
           fontFamily: 'sans-serif',
-          background: '#f4f6f9',
           padding: '20px',
+          boxSizing: 'border-box',
         }}
       >
         <div
           style={{
-            background: 'white',
+            background: '#ffffff',
             padding: '40px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
             width: '100%',
-            maxWidth: '400px',
+            maxWidth: '380px',
             textAlign: 'center',
           }}
         >
-          <h2 style={{ marginBottom: '20px', color: '#333' }}>
-            Acceso Restringido - ERP
-          </h2>
-
-          <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-            Debe iniciar sesión para ingresar al sistema.
-          </p>
+          {/* Logo y Nombre de la Empresa */}
+          <div style={{ marginBottom: '24px' }}>
+            <img
+              src="/logo.png"
+              alt="Logo Empresa"
+              style={{ height: '60px', objectFit: 'contain', marginBottom: '12px' }}
+              onError={(e) => {
+                // Oculta la imagen si no existe la ruta y no rompe el diseño
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+            <h2 style={{ margin: 0, color: '#1e293b', fontSize: '20px', fontWeight: 'bold' }}>
+              DARBIN SANCHEZ SANCHEZ
+            </h2>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>
+              ESTRUCTURAS METÁLICAS e-CF
+            </p>
+          </div>
 
           <form action="/login" method="POST">
-            <input
-              type="email"
-              name="email"
-              placeholder="Correo electrónico"
-              required
-              autoComplete="email"
-              style={{
-                boxSizing: 'border-box',
-                width: '100%',
-                padding: '10px',
-                marginBottom: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
+            <div style={{ marginBottom: '14px', textAlign: 'left' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#475569', marginBottom: '4px' }}>
+                Usuario
+              </label>
+              <input
+                type="text"
+                name="username"
+                placeholder="Ingrese su usuario"
+                required
+                autoComplete="username"
+                style={{
+                  boxSizing: 'border-box',
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  outline: 'none',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              required
-              autoComplete="current-password"
-              style={{
-                boxSizing: 'border-box',
-                width: '100%',
-                padding: '10px',
-                marginBottom: '20px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            />
+            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#475569', marginBottom: '4px' }}>
+                Contraseña
+              </label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Ingrese su contraseña"
+                required
+                autoComplete="current-password"
+                style={{
+                  boxSizing: 'border-box',
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  outline: 'none',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
 
             <button
               type="submit"
               style={{
                 width: '100%',
-                padding: '10px',
-                background: '#0070f3',
+                padding: '12px',
+                background: '#2563eb',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 fontWeight: 'bold',
+                fontSize: '14px',
                 cursor: 'pointer',
               }}
             >
@@ -116,14 +149,14 @@ async function HomeContent() {
             </button>
           </form>
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>Bienvenido al Panel del ERP</h1>
       <p>Sesión activa correctamente.</p>
-    </main>
+    </div>
   )
 }

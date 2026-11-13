@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
-    const email = formData.get('email') as string
+    const username = formData.get('username') as string
     const password = formData.get('password') as string
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -14,7 +14,9 @@ export async function POST(request: Request) {
       return NextResponse.redirect(new URL('/?error=missing_env', request.url), { status: 303 })
     }
 
-    // Petición nativa a la API de autenticación de Supabase
+    // En caso de que el usuario ingresado no incluya dominio, se puede mapear según su lógica de Supabase
+    const email = username.includes('@') ? username : `${username}@dominio.com`
+
     const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: {
@@ -33,7 +35,6 @@ export async function POST(request: Request) {
     const cookieStore = await cookies()
     const response = NextResponse.redirect(new URL('/', request.url), { status: 303 })
 
-    // Guardar la sesión de Supabase en una cookie compatible con nuestra validación del page.tsx
     const cookieName = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`
     
     response.cookies.set({
