@@ -1,4 +1,3 @@
-
 import { cookies } from 'next/headers'
 import { Suspense } from 'react'
 
@@ -30,7 +29,7 @@ async function HomeContent() {
   const allCookies = cookieStore.getAll()
 
   const hasSession = allCookies.some(
-    (cookie) =>
+    (cookie: { name: string }) =>
       cookie.name.startsWith('sb-') &&
       cookie.name.endsWith('-auth-token')
   )
@@ -67,7 +66,7 @@ async function HomeContent() {
             Debe iniciar sesión para ingresar al sistema.
           </p>
 
-          <form action="/auth/login" method="POST">
+          <form action="/login" method="POST">
             <input
               type="email"
               name="email"
