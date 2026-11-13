@@ -11,13 +11,11 @@ export async function POST(request: Request) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(new URL('/?error=missing_env', request.url), { status: 303 })
+      return NextResponse.json({ error: 'Faltan las variables de entorno de Supabase' }, { status: 500 })
     }
 
-    // Si el usuario no incluye '@', ajusta el formato al correo que requiere Supabase
     const email = username.includes('@') ? username : `${username}@dss.com`
 
-    // Petición HTTP nativa a Supabase
     const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: {
@@ -36,7 +34,6 @@ export async function POST(request: Request) {
     const cookieStore = await cookies()
     const response = NextResponse.redirect(new URL('/', request.url), { status: 303 })
 
-    // Generar la cookie de sesión compatible
     const hostname = new URL(supabaseUrl).hostname
     const cookieName = `sb-${hostname.split('.')[0]}-auth-token`
 
@@ -51,12 +48,12 @@ export async function POST(request: Request) {
       path: '/',
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 604800, // 1 semana
+      maxAge: 604800,
     })
 
     return response
-  } catch (err) {
-    console.error('Error en autenticación:', err)
-    return NextResponse.redirect(new URL('/?error=server_error', request.url), { status: 303 })
+  } catch (err: any) {
+    console.error('ERROR DETALLADO EN LOGIN:', err)
+    return NextResponse.json({ error: err.message || 'Error interno en el servidor' }, { status: 500 })
   }
 }
