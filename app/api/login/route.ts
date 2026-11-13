@@ -50,11 +50,15 @@ export async function POST(request: Request) {
     })
 
     if (error) {
-      // Redirigir al login enviando el error exacto para diagnosticar si fuera necesario
-      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url), 303)
+      // AQUÍ ESTÁ EL DIAGNÓSTICO: Nos devolverá el error exacto y el correo que intentó usar
+      return NextResponse.json({ 
+        errorSupabase: error.message, 
+        emailIntentado: email,
+        codigoError: error.status 
+      }, { status: 400 })
     }
 
-    // Crear la respuesta de redirección a la página principal
+    // Crear la respuesta de redirección a la página principal si entra con éxito
     const url = new URL('/', request.url)
     const response = NextResponse.redirect(url, {
       status: 303,
