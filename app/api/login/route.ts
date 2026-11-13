@@ -5,8 +5,8 @@ import { cookies } from 'next/headers'
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
-    const username = formData.get('username') as string
-    const password = formData.get('password') as string
+    const username = (formData.get('username') as string || '').trim()
+    const password = (formData.get('password') as string || '').trim()
 
     if (!username || !password) {
       return NextResponse.redirect(new URL('/login?error=Campos+incompletos', request.url), 303)
@@ -34,24 +34,38 @@ export async function POST(request: Request) {
               cookieStore.set(name, value, options)
             })
           } catch {
-            // Ignorar en server routes
+            // Ignorar en Server Actions / Route Handlers
           }
         },
       },
     })
 
-    const email = username.includes('@') ? username : `${username}@dss.com`
+    // Limpiar el usuario y asegurar el dominio correcto en minúsculas
+    const cleanUsername = username.toLowerCase()
+    const email = cleanUsername.includes('@') ? cleanUsername : `${cleanUsername}@dss.com`
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
-      return NextResponse.redirect(new URL('/login?error=Credenciales+incorrectas', request.url), 303)
+      // Redirigir al login enviando el error exacto para diagnosticar si fuera necesario
+      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url), 303)
     }
 
-    return NextResponse.redirect(new URL('/', request.url), 303)
+    // Crear la respuesta de redirección a la página principal
+    const url = new URL('/', request.url)
+    const response = NextResponse.redirect(url, {
+      status: 303,
+    })
+
+    // Copiar explícitamente las cookies de sesión generadas por Supabase a la respuesta final
+    cookieStore.getAll().forEach((cookie) => {
+      response.cookies.set(cookie.name, cookie.value)
+    })
+
+    return response
 
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error interno del servidor' }, { status: 500 })
