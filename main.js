@@ -1,36 +1,37 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
+const { app, BrowserWindow, session } = require('electron')
 
-function createWindow() {
+async function createWindow() {
+  // Usamos la sesión por defecto o una partición limpia
+  const ses = session.defaultSession
+
+  // Limpiamos agresivamente todo el almacenamiento de cookies y caché antes de abrir
+  await ses.clearStorageData({
+    storages: ['cookies', 'localStorage', 'shadercache', 'websql', 'indexdb']
+  })
+  await ses.clearCache()
+
   const mainWindow = new BrowserWindow({
-    width: 1300,
+    width: 1200,
     height: 800,
-    icon: path.join(__dirname, 'public/logo.png'), // Logo oficial en la ventana
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      nodeIntegration: false,
+      contextIsolation: true
     }
-  });
+  })
 
-  // Carga la aplicación local corriendo en Next.js (puerto 3000)
-  mainWindow.loadURL('http://localhost:3000');
-  
-  // Ocultar la barra de menú superior por defecto para que luzca como app de escritorio formal
-  mainWindow.setMenuBarVisibility(false);
+  mainWindow.loadURL('https://erp-ecf-three.vercel.app')
 }
 
-app.whenReady().then(() => {
-  createWindow();
+app.whenReady().then(async () => {
+  await createWindow()
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
-});
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
-    app.quit();
+    app.quit()
   }
-});
+})
