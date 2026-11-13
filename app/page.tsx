@@ -1,9 +1,32 @@
 
 import { cookies } from 'next/headers'
+import { Suspense } from 'react'
 
-export default async function Home() {
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontFamily: 'sans-serif',
+            background: '#f4f6f9',
+          }}
+        >
+          Cargando sistema...
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
+  )
+}
+
+async function HomeContent() {
   const cookieStore = await cookies()
-
   const allCookies = cookieStore.getAll()
 
   const hasSession = allCookies.some(
@@ -36,22 +59,11 @@ export default async function Home() {
             textAlign: 'center',
           }}
         >
-          <h2
-            style={{
-              marginBottom: '20px',
-              color: '#333',
-            }}
-          >
+          <h2 style={{ marginBottom: '20px', color: '#333' }}>
             Acceso Restringido - ERP
           </h2>
 
-          <p
-            style={{
-              marginBottom: '20px',
-              color: '#666',
-              fontSize: '14px',
-            }}
-          >
+          <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
             Debe iniciar sesión para ingresar al sistema.
           </p>
 
@@ -110,14 +122,8 @@ export default async function Home() {
   }
 
   return (
-    <main
-      style={{
-        padding: '20px',
-        fontFamily: 'sans-serif',
-      }}
-    >
+    <main style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>Bienvenido al Panel del ERP</h1>
-
       <p>Sesión activa correctamente.</p>
     </main>
   )
