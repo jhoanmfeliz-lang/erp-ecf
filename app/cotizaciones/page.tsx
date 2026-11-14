@@ -1,134 +1,220 @@
-'use client';
-import React, { useState, useEffect } from 'react';
+'use client'
+
+import { createBrowserClient } from '@supabase/ssr'
+import { useEffect, useState } from 'react'
 
 export default function CotizacionesPage() {
-  const [cliente, setCliente] = useState('');
-  const [pesoLb, setPesoLb] = useState('');
-  const [tipoEnvio, setTipoEnvio] = useState('Nacional Expreso');
+  const [loading, setLoading] = useState(true)
+  
+  // Datos de cotizaciones
   const [cotizaciones, setCotizaciones] = useState([
-    { id: 'COT-1001', cliente: 'Constructora del Caribe SRL', peso: '5.0', tipo: 'Nacional Expreso', total: '1,250.00', fecha: '2026-11-12' }
-  ]);
+    { id: 'COT-1001', cliente: 'Constructora del Caribe SRL', servicio: 'Nacional Expreso', peso: '5.0 lb', total: 'RD$ 1,250.00', fecha: '13/11/2026' }
+  ])
+
+  // Campos para nueva cotización
+  const [clienteInput, setClienteInput] = useState('')
+  const [servicioInput, setServicioInput] = useState('Nacional Expreso')
+  const [pesoInput, setPesoInput] = useState('')
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
-    const saved = localStorage.getItem('erp_cotizaciones_db');
-    if (saved) {
-      try { setCotizaciones(JSON.parse(saved)); } catch (e) { console.error(e); }
+    async function checkUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        window.location.href = '/login'
+      } else {
+        setLoading(false)
+      }
     }
-  }, []);
+    checkUser()
+  }, [supabase])
 
-  const guardarStorage = (nuevos: typeof cotizaciones) => {
-    setCotizaciones(nuevos);
-    localStorage.setItem('erp_cotizaciones_db', JSON.stringify(nuevos));
-  };
+  // Función real para imprimir la cotización (Abre la impresora directamente sin alertas falsas)
+  const handleImprimirCotizacion = (cot: any) => {
+    window.print()
+  }
 
-  const pesoNum = parseFloat(pesoLb) || 0;
-  let tarifaBase = 200;
-  if (tipoEnvio === 'Aéreo Internacional') tarifaBase = 450;
-  if (tipoEnvio === 'Marítimo Carga Pesada') tarifaBase = 100;
-
-  const costoTotal = pesoNum > 0 ? (tarifaBase + (pesoNum * 180)) * 1.18 : 0;
-
-  const crearCotizacion = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cliente.trim() || pesoNum <= 0) {
-      alert('⚠️ Ingrese el nombre del cliente y un peso válido en libras.');
-      return;
+  const handleCrearCotizacion = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!clienteInput.trim()) {
+      alert('Por favor ingrese el cliente o empresa.')
+      return
     }
 
+    const nuevoId = `COT-${1000 + cotizaciones.length + 1}`
     const nuevaCot = {
-      id: `COT-${Math.floor(1000 + Math.random() * 9000)}`,
-      cliente,
-      peso: pesoNum.toFixed(1),
-      tipo: tipoEnvio,
-      total: costoTotal.toFixed(2),
-      fecha: new Date().toISOString().split('T')[0]
-    };
+      id: nuevoId,
+      cliente: clienteInput,
+      servicio: servicioInput,
+      peso: `${pesoInput || '0'} lb`,
+      total: `RD$ ${(parseFloat(pesoInput || '0') * 250).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      fecha: new Date().toLocaleDateString()
+    }
 
-    const nuevos = [nuevaCot, ...cotizaciones];
-    guardarStorage(nuevos);
-    setCliente('');
-    setPesoLb('');
-    alert(`✅ Cotización ${nuevaCot.id} generada con éxito por RD$ ${nuevaCot.total}`);
-  };
+    setCotizaciones([nuevaCot, ...cotizaciones])
+    setClienteInput('')
+    setPesoInput('')
+    alert('¡Cotización generada y guardada con éxito!')
+  }
 
-  const eliminarCotizacion = (index: number) => {
-    const nuevos = cotizaciones.filter((_, i) => i !== index);
-    guardarStorage(nuevos);
-  };
+  if (loading) {
+    return (
+      <div style={{ padding: '60px', textAlign: 'center', color: '#ffffff', fontFamily: 'Arial, sans-serif' }}>
+        <h2>Verificando sesión...</h2>
+      </div>
+    )
+  }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ backgroundColor: '#0b1329', border: '1px solid #1e293b', borderRadius: '1rem', padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>Gestión de Cotizaciones</h2>
-          <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.25rem 0 0 0' }}>Cálculo automático de tarifas de envío y paquetes para JD Courier</p>
+    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px', position: 'relative' }}>
+      
+      {/* Estilos CSS de Impresión Limpia: Oculta menús, barras y botones al imprimir */}
+      <style jsx global>{`
+        @media print {
+          aside, header, button, .no-print {
+            display: none !important;
+          }
+          body {
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          .printable-area {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+          }
+          table {
+            color: #000000 !important;
+            border: 1px solid #000 !important;
+          }
+          th, td {
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+          }
+        }
+      `}</style>
+
+      {/* ÁREA IMPRIMIBLE (Membrete oficial y contenido de cotizaciones) */}
+      <div className="printable-area">
+        
+        {/* Membrete formal de la empresa */}
+        <div style={{ marginBottom: '25px', borderBottom: '2px solid #2563eb', paddingBottom: '12px' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', color: '#ffffff' }}>DARBIN SANCHEZ SANCHEZ</h1>
+          <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#94a3b8' }}>ESTRUCTURAS METÁLICAS e-CF | RNC: 22400221473</p>
         </div>
-        <button onClick={() => window.print()} style={{ backgroundColor: '#1e293b', color: '#60a5fa', border: '1px solid #334155', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}>🖨️ Imprimir Cotizaciones</button>
-      </div>
 
-      <div style={{ backgroundColor: '#0b1329', border: '1px solid #1e293b', borderRadius: '1rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
-        <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#34d399', margin: '0 0 1rem 0' }}>Crear Nueva Cotización de Envío</h3>
-        <form onSubmit={crearCotizacion} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.2rem', alignItems: 'end' }}>
+        {/* Cabecera de la sección */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 'bold', color: '#94a3b8', marginBottom: '0.3rem' }}>Cliente / Empresa</label>
-            <input type="text" placeholder="Ej. Juan Pérez o Empresa SRL" value={cliente} onChange={(e) => setCliente(e.target.value)} style={{ width: '100%', backgroundColor: '#070d1d', border: '1px solid #334155', borderRadius: '0.75rem', padding: '0.6rem', color: '#fff', outline: 'none' }} />
+            <h2 style={{ margin: 0, color: '#ffffff', fontSize: '24px' }}>Gestión de Cotizaciones</h2>
+            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0' }}>Cálculo automático de tarifas de envío y paquetes para JD Courier.</p>
           </div>
+          <button 
+            onClick={() => window.print()}
+            style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}
+            className="no-print"
+          >
+            🖨️ Imprimir Vista
+          </button>
+        </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 'bold', color: '#94a3b8', marginBottom: '0.3rem' }}>Tipo de Servicio</label>
-            <select value={tipoEnvio} onChange={(e) => setTipoEnvio(e.target.value)} style={{ width: '100%', backgroundColor: '#070d1d', border: '1px solid #334155', borderRadius: '0.75rem', padding: '0.6rem', color: '#fff', outline: 'none' }}>
-              <option value="Nacional Expreso">Nacional Expreso</option>
-              <option value="Aéreo Internacional">Aéreo Internacional</option>
-              <option value="Marítimo Carga Pesada">Marítimo Carga Pesada</option>
-            </select>
-          </div>
+        {/* Formulario para Crear Nueva Cotización */}
+        <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '24px', marginBottom: '30px' }} className="no-print">
+          <h3 style={{ margin: '0 0 15px', color: '#ffffff', fontSize: '16px' }}>Crear Nueva Cotización de Envío</h3>
+          <form onSubmit={handleCrearCotizacion} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '15px', alignItems: 'end' }}>
+            <div>
+              <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '5px' }}>Cliente / Empresa</label>
+              <input 
+                type="text" 
+                value={clienteInput}
+                onChange={(e) => setClienteInput(e.target.value)}
+                placeholder="Ej. Constructora del Caribe SRL"
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', background: '#0f172a', border: '1px solid #475569', color: '#fff', boxSizing: 'border-box' }}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '5px' }}>Tipo de Servicio</label>
+              <select 
+                value={servicioInput}
+                onChange={(e) => setServicioInput(e.target.value)}
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', background: '#0f172a', border: '1px solid #475569', color: '#fff', boxSizing: 'border-box' }}
+              >
+                <option value="Nacional Expreso">Nacional Expreso</option>
+                <option value="Carga Pesada">Carga Pesada</option>
+                <option value="Estructuras Metálicas">Estructuras Metálicas</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#cbd5e1', fontSize: '12px', marginBottom: '5px' }}>Peso (Libras)</label>
+              <input 
+                type="number" 
+                value={pesoInput}
+                onChange={(e) => setPesoInput(e.target.value)}
+                placeholder="0.0"
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', background: '#0f172a', border: '1px solid #475569', color: '#fff', boxSizing: 'border-box' }}
+              />
+            </div>
+            <button 
+              type="submit" 
+              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', height: '41px' }}
+            >
+              + Generar
+            </button>
+          </form>
+        </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 'bold', color: '#94a3b8', marginBottom: '0.3rem' }}>Peso (Libras)</label>
-            <input type="number" step="0.1" placeholder="0.0" value={pesoLb} onChange={(e) => setPesoLb(e.target.value)} style={{ width: '100%', backgroundColor: '#070d1d', border: '1px solid #334155', borderRadius: '0.75rem', padding: '0.6rem', color: '#fff', outline: 'none' }} />
-          </div>
-
-          <div style={{ backgroundColor: '#070d1d', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0.6rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Estimado Total (Inc. ITBIS):</span>
-            <span style={{ fontSize: '0.9rem', color: '#34d399', fontWeight: 'bold' }}>RD$ {costoTotal.toFixed(2)}</span>
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="submit" style={{ backgroundColor: '#2563eb', border: 'none', borderRadius: '0.75rem', padding: '0.7rem 2rem', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem' }}>+ Generar y Guardar Cotización</button>
-          </div>
-        </form>
-      </div>
-
-      <div style={{ backgroundColor: '#0b1329', border: '1px solid #1e293b', borderRadius: '1rem', padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#60a5fa', margin: '0 0 1rem 0' }}>Historial de Cotizaciones Emitidas</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #1e293b', color: '#94a3b8', fontSize: '0.7rem', textTransform: 'uppercase' }}>
-              <th style={{ padding: '0.5rem' }}>No. Cotización</th>
-              <th style={{ padding: '0.5rem' }}>Cliente</th>
-              <th style={{ padding: '0.5rem' }}>Servicio</th>
-              <th style={{ padding: '0.5rem' }}>Peso (Lb)</th>
-              <th style={{ padding: '0.5rem' }}>Total Estimado</th>
-              <th style={{ padding: '0.5rem', textAlign: 'right' }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cotizaciones.map((cot, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #1e293b' }}>
-                <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace', fontWeight: 'bold', color: '#60a5fa' }}>{cot.id}</td>
-                <td style={{ padding: '0.75rem 0.5rem', fontWeight: 'bold' }}>{cot.cliente}</td>
-                <td style={{ padding: '0.75rem 0.5rem', color: '#94a3b8' }}>{cot.tipo}</td>
-                <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace' }}>{cot.peso} lb</td>
-                <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace', color: '#34d399', fontWeight: 'bold' }}>RD$ {cot.total}</td>
-                <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'end' }}>
-                  <button onClick={() => alert(`🖨️ Imprimiendo detalles de la cotización ${cot.id}...`)} style={{ backgroundColor: '#1e293b', color: '#60a5fa', border: '1px solid #334155', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', cursor: 'pointer', fontSize: '0.7rem' }}>Imprimir</button>
-                  <button onClick={() => eliminarCotizacion(i)} style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', cursor: 'pointer', fontSize: '0.7rem' }}>Eliminar</button>
-                </td>
+        {/* Historial de Cotizaciones */}
+        <h3 style={{ color: '#ffffff', fontSize: '18px', marginBottom: '15px' }}>Historial de Cotizaciones Emitidas</h3>
+        <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', color: '#f8fafc' }}>
+            <thead>
+              <tr style={{ background: '#0f172a', color: '#94a3b8', borderBottom: '1px solid #334155' }}>
+                <th style={{ padding: '14px 20px' }}>No. Cotización</th>
+                <th style={{ padding: '14px 20px' }}>Cliente</th>
+                <th style={{ padding: '14px 20px' }}>Servicio</th>
+                <th style={{ padding: '14px 20px' }}>Peso (lb)</th>
+                <th style={{ padding: '14px 20px' }}>Total Estimado</th>
+                <th style={{ padding: '14px 20px', textAlign: 'right' }} className="no-print">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {cotizaciones.map((cot) => (
+                <tr key={cot.id} style={{ borderBottom: '1px solid #334155' }}>
+                  <td style={{ padding: '14px 20px', fontWeight: 'bold', color: '#38bdf8' }}>{cot.id}</td>
+                  <td style={{ padding: '14px 20px', fontWeight: '500' }}>{cot.cliente}</td>
+                  <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{cot.servicio}</td>
+                  <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{cot.peso}</td>
+                  <td style={{ padding: '14px 20px', color: '#4ade80', fontWeight: 'bold' }}>{cot.total}</td>
+                  <td style={{ padding: '14px 20px', textAlign: 'right' }} className="no-print">
+                    <button 
+                      onClick={() => handleImprimirCotizacion(cot)}
+                      style={{ background: '#334155', border: '1px solid #475569', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', marginRight: '8px' }}
+                    >
+                      Imprimir
+                    </button>
+                    <button 
+                      onClick={() => setCotizaciones(cotizaciones.filter(item => item.id !== cot.id))}
+                      style={{ background: '#7f1d1d', border: '1px solid #991b1b', color: '#fca5a5', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
+
     </div>
-  );
+  )
 }
