@@ -5,16 +5,10 @@ import { useEffect, useState } from 'react'
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('clientes')
 
   // Datos de prueba para Clientes
   const [clientes, setClientes] = useState([
     { id: 1, nombre: 'Ejemplo Constructora SRL', rnc: '130123456', correo: 'contacto@ejemplo.com', telefono: '809-555-1234' }
-  ])
-
-  // Datos de prueba para Cotizaciones
-  const [cotizaciones, setCotizaciones] = useState([
-    { id: 1001, cliente: 'Constructora del Caribe', detalle: 'Nacional expreso (5 libras)', monto: '1,250.00 DOP', fecha: '13/11/2026' }
   ])
 
   // Estados para el Modal de Clientes (Crear / Editar)
@@ -107,10 +101,9 @@ export default function HomePage() {
   return (
     <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '20px', position: 'relative' }}>
       
-      {/* Estilos CSS incrustados para manejar pestañas internas y el modo de impresión limpia */}
+      {/* Estilos globales de impresión: Ocultan barras, menús y botones al imprimir */}
       <style jsx global>{`
         @media print {
-          /* Ocultar elementos de la interfaz que no deben imprimirse */
           aside, header, button, .no-print {
             display: none !important;
           }
@@ -137,140 +130,63 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* Selector rápido de pestañas principales (Simulando navegación interna limpia) */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '1px solid #334155', paddingBottom: '15px' }} className="no-print">
-        <button 
-          onClick={() => setActiveTab('clientes')}
-          style={{ background: activeTab === 'clientes' ? '#2563eb' : '#1e293b', color: '#fff', border: '1px solid #334155', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          Clientes
-        </button>
-        <button 
-          onClick={() => setActiveTab('cotizaciones')}
-          style={{ background: activeTab === 'cotizaciones' ? '#2563eb' : '#1e293b', color: '#fff', border: '1px solid #334155', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          Cotizaciones
-        </button>
-        <button 
-          onClick={() => setActiveTab('mantenimiento')}
-          style={{ background: activeTab === 'mantenimiento' ? '#2563eb' : '#1e293b', color: '#fff', border: '1px solid #334155', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          Mantenimiento
-        </button>
-      </div>
-
-      {/* ÁREA IMPRIMIBLE (Único contenido que saldrá en la impresora) */}
+      {/* ÁREA IMPRIMIBLE (Membrete oficial y contenido principal) */}
       <div className="printable-area">
         
-        {/* Membrete formal para impresión */}
-        <div style={{ marginBottom: '20px', borderBottom: '2px solid #2563eb', paddingBottom: '10px' }}>
-          <h1 style={{ margin: 0, fontSize: '20px', color: '#ffffff' }}>DARBIN SANCHEZ SANCHEZ</h1>
-          <p style={{ margin: '2px 0', fontSize: '13px', color: '#94a3b8' }}>ESTRUCTURAS METÁLICAS e-CF | RNC: 22400221473</p>
+        {/* Membrete formal de la empresa para impresión */}
+        <div style={{ marginBottom: '25px', borderBottom: '2px solid #2563eb', paddingBottom: '12px' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', color: '#ffffff' }}>DARBIN SANCHEZ SANCHEZ</h1>
+          <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#94a3b8' }}>ESTRUCTURAS METÁLICAS e-CF | RNC: 22400221473</p>
         </div>
 
-        {/* ─── VISTA: CLIENTES ─── */}
-        {activeTab === 'clientes' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div>
-                <h2 style={{ margin: 0, color: '#ffffff', fontSize: '22px' }}>Gestión de Clientes</h2>
-                <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0' }}>Directorio fiscal autorizado para e-CF.</p>
-              </div>
-              <button 
-                onClick={handleAbrirNuevo}
-                style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
-                className="no-print"
-              >
-                + Nuevo Cliente
-              </button>
+        {/* CONTENIDO PRINCIPAL: GESTIÓN DE CLIENTES */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div>
+              <h2 style={{ margin: 0, color: '#ffffff', fontSize: '24px' }}>Gestión de Clientes</h2>
+              <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0' }}>Directorio de clientes y datos fiscales para la emisión de e-CF (DGII).</p>
             </div>
+            <button 
+              onClick={handleAbrirNuevo}
+              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}
+              className="no-print"
+            >
+              + Nuevo Cliente
+            </button>
+          </div>
 
-            <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', color: '#f8fafc' }}>
-                <thead>
-                  <tr style={{ background: '#0f172a', color: '#94a3b8', borderBottom: '1px solid #334155' }}>
-                    <th style={{ padding: '14px 20px' }}>Nombre / Razón Social</th>
-                    <th style={{ padding: '14px 20px' }}>RNC / Cédula</th>
-                    <th style={{ padding: '14px 20px' }}>Correo</th>
-                    <th style={{ padding: '14px 20px' }}>Teléfono</th>
-                    <th style={{ padding: '14px 20px', textAlign: 'right' }} className="no-print">Acciones</th>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', color: '#f8fafc' }}>
+              <thead>
+                <tr style={{ background: '#0f172a', color: '#94a3b8', borderBottom: '1px solid #334155' }}>
+                  <th style={{ padding: '14px 20px' }}>Nombre / Razón Social</th>
+                  <th style={{ padding: '14px 20px' }}>RNC / Cédula</th>
+                  <th style={{ padding: '14px 20px' }}>Correo</th>
+                  <th style={{ padding: '14px 20px' }}>Teléfono</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'right' }} className="no-print">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clientes.map((c) => (
+                  <tr key={c.id} style={{ borderBottom: '1px solid #334155' }}>
+                    <td style={{ padding: '14px 20px', fontWeight: '500' }}>{c.nombre}</td>
+                    <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{c.rnc}</td>
+                    <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{c.correo}</td>
+                    <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{c.telefono}</td>
+                    <td style={{ padding: '14px 20px', textAlign: 'right' }} className="no-print">
+                      <button 
+                        onClick={() => handleAbrirEditar(c)}
+                        style={{ background: '#334155', border: '1px solid #475569', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                        Editar
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {clientes.map((c) => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid #334155' }}>
-                      <td style={{ padding: '14px 20px', fontWeight: '500' }}>{c.nombre}</td>
-                      <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{c.rnc}</td>
-                      <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{c.correo}</td>
-                      <td style={{ padding: '14px 20px', color: '#94a3b8' }}>{c.telefono}</td>
-                      <td style={{ padding: '14px 20px', textAlign: 'right' }} className="no-print">
-                        <button 
-                          onClick={() => handleAbrirEditar(c)}
-                          style={{ background: '#334155', border: '1px solid #475569', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-
-        {/* ─── VISTA: COTIZACIONES ─── */}
-        {activeTab === 'cotizaciones' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div>
-                <h2 style={{ margin: 0, color: '#ffffff', fontSize: '22px' }}>Cotizaciones e-CF</h2>
-                <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0' }}>Detalle y emisión de presupuestos.</p>
-              </div>
-              <button 
-                onClick={() => window.print()}
-                style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
-                className="no-print"
-              >
-                🖨️ Imprimir Cotización Actual
-              </button>
-            </div>
-
-            <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '24px' }}>
-              {cotizaciones.map((cot) => (
-                <div key={cot.id} style={{ borderBottom: '1px solid #334155', paddingBottom: '15px', marginBottom: '15px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ fontWeight: 'bold', color: '#38bdf8' }}>COTIZACIÓN #{cot.id}</span>
-                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>Fecha: {cot.fecha}</span>
-                  </div>
-                  <p style={{ margin: '5px 0', color: '#f8fafc' }}><strong>Cliente:</strong> {cot.cliente}</p>
-                  <p style={{ margin: '5px 0', color: '#f8fafc' }}><strong>Detalle:</strong> {cot.detalle}</p>
-                  <p style={{ margin: '5px 0', color: '#4ade80', fontSize: '16px', fontWeight: 'bold' }}>Monto Total: {cot.monto}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ─── VISTA: MANTENIMIENTO / REPORTES ─── */}
-        {activeTab === 'mantenimiento' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ margin: 0, color: '#ffffff', fontSize: '22px' }}>Mantenimiento y Reportes del Sistema</h2>
-              <button 
-                onClick={() => window.print()}
-                style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
-                className="no-print"
-              >
-                🖨️ Imprimir Reporte
-              </button>
-            </div>
-            <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '20px', color: '#cbd5e1' }}>
-              <p>Estado general del nodo: <strong>Operativo</strong></p>
-              <p>Conexión DGII e-CF: <strong>Sincronizado</strong></p>
-            </div>
-          </div>
-        )}
+        </div>
 
       </div>
 
