@@ -2,8 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { useEffect, useState } from 'react'
-import Sidebar from './components/Sidebar' // <-- Importamos la barra lateral que creamos
-
+import Sidebar from '@/app/components/Sidebar'
 export default function HomePage() {
   const [loading, setLoading] = useState(true)
 
